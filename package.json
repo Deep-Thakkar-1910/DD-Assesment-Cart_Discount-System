@@ -17,6 +17,7 @@
     "start": "cd server && npm start"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "prettier-plugin-tailwindcss": "^0.7.0"
   }
 }
