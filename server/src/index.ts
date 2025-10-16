@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import connectDB from "./config/database";
 import { config } from "./config/env";
 import authRoutes from "./routes/authRoutes";
+import productRoutes from "./routes/productRoutes";
 
 const app: Express = express();
 
@@ -27,6 +28,7 @@ app.use(cookieParser());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
 
 // Health check endpoint
 app.get("/healthcheck", (req, res) => {
