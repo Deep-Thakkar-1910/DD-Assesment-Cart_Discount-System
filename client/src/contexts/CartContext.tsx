@@ -1,5 +1,10 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Product } from '../services/productService';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  type ReactNode,
+} from "react";
+import { type Product } from "../services/productService";
 
 export interface CartItem {
   product: Product;
@@ -21,7 +26,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const useCart = () => {
   const context = useContext(CartContext);
   if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
+    throw new Error("useCart must be used within a CartProvider");
   }
   return context;
 };
@@ -34,14 +39,16 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   const addToCart = (product: Product, quantity: number = 1) => {
-    setCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.product._id === product._id);
-      
+    setCartItems((prevItems) => {
+      const existingItem = prevItems.find(
+        (item) => item.product._id === product._id,
+      );
+
       if (existingItem) {
-        return prevItems.map(item =>
+        return prevItems.map((item) =>
           item.product._id === product._id
             ? { ...item, quantity: item.quantity + quantity }
-            : item
+            : item,
         );
       } else {
         return [...prevItems, { product, quantity }];
@@ -50,7 +57,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   };
 
   const removeFromCart = (productId: string) => {
-    setCartItems(prevItems => prevItems.filter(item => item.product._id !== productId));
+    setCartItems((prevItems) =>
+      prevItems.filter((item) => item.product._id !== productId),
+    );
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
@@ -58,13 +67,11 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       removeFromCart(productId);
       return;
     }
-    
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.product._id === productId
-          ? { ...item, quantity }
-          : item
-      )
+
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.product._id === productId ? { ...item, quantity } : item,
+      ),
     );
   };
 
@@ -77,7 +84,10 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   };
 
   const getTotalPrice = () => {
-    return cartItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+    return cartItems.reduce(
+      (total, item) => total + item.product.price * item.quantity,
+      0,
+    );
   };
 
   const value: CartContextType = {
@@ -90,9 +100,5 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     getTotalPrice,
   };
 
-  return (
-    <CartContext.Provider value={value}>
-      {children}
-    </CartContext.Provider>
-  );
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
