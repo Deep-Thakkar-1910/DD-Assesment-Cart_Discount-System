@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "../contexts/AuthContext";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
@@ -54,12 +55,17 @@ const AdminRegister: React.FC = () => {
         "admin",
         values.adminKey,
       );
+      toast.success(
+        "Admin registration successful! Welcome to DD Store Admin Panel!",
+      );
       navigate("/");
     } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message ||
+        "Admin registration failed. Please try again.";
+      toast.error(errorMessage);
       form.setError("root", {
-        message:
-          err.response?.data?.message ||
-          "Admin registration failed. Please try again.",
+        message: errorMessage,
       });
     }
   };

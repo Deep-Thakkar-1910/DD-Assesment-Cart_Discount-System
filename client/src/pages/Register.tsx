@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "../contexts/AuthContext";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
@@ -47,12 +48,14 @@ const Register: React.FC = () => {
     try {
       const { name, email, password } = values;
       await register(name, email, password, "user");
+      toast.success("Registration successful! Welcome to DD Store!");
       navigate("/");
     } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || "Registration failed. Please try again.";
+      toast.error(errorMessage);
       form.setError("root", {
-        message:
-          err.response?.data?.message ||
-          "Registration failed. Please try again.",
+        message: errorMessage,
       });
     }
   };

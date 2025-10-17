@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "../contexts/AuthContext";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
@@ -43,11 +44,14 @@ const Login: React.FC = () => {
   const onSubmit = async (values: LoginFormValues) => {
     try {
       await login(values.email, values.password);
+      toast.success("Login successful!");
       navigate("/");
     } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || "Login failed. Please try again.";
+      toast.error(errorMessage);
       form.setError("root", {
-        message:
-          err.response?.data?.message || "Login failed. Please try again.",
+        message: errorMessage,
       });
     }
   };

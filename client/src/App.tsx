@@ -4,22 +4,19 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
-import { CartProvider } from "./contexts/CartContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AdminRegister from "./pages/AdminRegister";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
-import Products from "./pages/Products";
+import { Toaster } from "./components/ui/sonner";
 
 function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <Router>
-          <div className="App">
+    <>
+      <Router>
+        <div className="App">
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -33,14 +30,6 @@ function App() {
               }
             />
             <Route
-              path="/products"
-              element={
-                <ProtectedRoute>
-                  <Products />
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/admin"
               element={
                 <ProtectedRoute adminOnly>
@@ -50,10 +39,16 @@ function App() {
             />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-          </div>
-        </Router>
-      </CartProvider>
-    </AuthProvider>
+        </div>
+      </Router>
+      <Toaster
+        duration={5000}
+        richColors
+        position="bottom-left"
+        closeButton
+        swipeDirections={["bottom", "left", "right", "top"]}
+      />
+    </>
   );
 }
 

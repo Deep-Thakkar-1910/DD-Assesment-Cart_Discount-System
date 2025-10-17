@@ -7,6 +7,8 @@ import connectDB from "./config/database";
 import { config } from "./config/env";
 import authRoutes from "./routes/authRoutes";
 import productRoutes from "./routes/productRoutes";
+import cartRoutes from "./routes/cartRoutes";
+import checkoutRoutes from "./routes/checkoutRoutes";
 
 const app: Express = express();
 
@@ -29,6 +31,8 @@ app.use(cookieParser());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/checkout", checkoutRoutes);
 
 // Health check endpoint
 app.get("/healthcheck", (req, res) => {

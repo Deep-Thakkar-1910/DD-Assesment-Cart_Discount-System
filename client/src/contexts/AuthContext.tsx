@@ -6,6 +6,7 @@ import React, {
   type ReactNode,
 } from "react";
 import { type User, authService } from "../services/auth";
+import { toast } from "sonner";
 
 interface AuthContextType {
   user: User | null;
@@ -48,8 +49,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (response.success) {
           setUser(response.data.user);
         }
-      } catch (error) {
-        // Silently handle auth errors - user is not authenticated
+      } catch (error: any) {
+        // Handle session expiration
+        if (error.response?.status === 401) {
+          toast.error("Session expired. Please login again.");
+        }
         setUser(null);
       } finally {
         setLoading(false);
@@ -65,7 +69,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.success) {
         setUser(response.data.user);
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Don't show toast here as it's handled in the Login component
       throw error;
     }
   };
@@ -97,6 +102,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await authService.logout();
       setUser(null);
+      toast.success("Logged out successfully");
     } catch (error) {
       console.error("Logout failed:", error);
       // Still clear user state even if logout request fails

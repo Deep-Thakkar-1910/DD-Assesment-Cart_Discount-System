@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { toast } from "sonner";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,6 +15,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   adminOnly = false,
 }) => {
   const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && user && adminOnly && user.role !== "admin") {
+      toast.error("Access denied. Admin privileges required");
+    }
+  }, [loading, user, adminOnly]);
 
   if (loading) {
     return (
