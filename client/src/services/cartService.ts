@@ -15,6 +15,28 @@ export interface CartItem {
   updatedAt: string;
 }
 
+export interface DiscountedCartItem {
+  productId: string;
+  productName: string;
+  category: string;
+  originalPrice: number;
+  quantity: number;
+  discountApplied?: string;
+  discountAmount: number;
+  finalPrice: number;
+}
+
+export interface CartSummary {
+  totalOriginalPrice: number;
+  totalDiscount: number;
+  totalFinalPrice: number;
+}
+
+export interface CartWithDiscounts {
+  items: DiscountedCartItem[];
+  summary: CartSummary;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -30,7 +52,7 @@ export const cartService = {
     return response.data;
   },
 
-  async getCart(): Promise<ApiResponse<CartItem[]>> {
+  async getCart(): Promise<ApiResponse<CartWithDiscounts>> {
     const response = await api.get("/cart");
     return response.data;
   },

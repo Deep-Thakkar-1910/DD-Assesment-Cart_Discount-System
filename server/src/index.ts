@@ -9,6 +9,7 @@ import authRoutes from "./routes/authRoutes";
 import productRoutes from "./routes/productRoutes";
 import cartRoutes from "./routes/cartRoutes";
 import checkoutRoutes from "./routes/checkoutRoutes";
+import discountRoutes from "./routes/discountRoutes";
 
 const app: Express = express();
 
@@ -33,6 +34,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/checkout", checkoutRoutes);
+app.use("/api/discounts", discountRoutes);
 
 // Health check endpoint
 app.get("/healthcheck", (req, res) => {

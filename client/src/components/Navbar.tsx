@@ -62,11 +62,13 @@ const Navbar: React.FC<NavbarProps> = ({ onCheckoutSuccess }) => {
                   )}
                 </Button>
               </SheetTrigger>
-              <SheetContent className="w-[400px] sm:w-[540px]">
-                <SheetHeader>
+              <SheetContent className="flex w-[400px] flex-col sm:w-[540px]">
+                <SheetHeader className="flex-shrink-0">
                   <SheetTitle>Shopping Cart</SheetTitle>
                 </SheetHeader>
-                <CartSidebar onCheckoutSuccess={onCheckoutSuccess} />
+                <div className="flex-1 overflow-hidden">
+                  <CartSidebar onCheckoutSuccess={onCheckoutSuccess} />
+                </div>
               </SheetContent>
             </Sheet>
 

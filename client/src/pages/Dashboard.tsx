@@ -1,35 +1,54 @@
 import React, { useState, useEffect } from "react";
 import { productService, type Product } from "../services/productService";
+import {
+  discountService,
+  type ActiveDiscount,
+} from "../services/discountService";
 import { useCart } from "../contexts/CartContext";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "../components/ui/badge";
 import Navbar from "../components/Navbar";
+import { Tag } from "lucide-react";
 
 const Dashboard: React.FC = () => {
   const { updateCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
+  const [discounts, setDiscounts] = useState<ActiveDiscount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchProducts();
+    fetchData();
   }, []);
 
-  const fetchProducts = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await productService.getProducts();
-      if (response.success && response.data) {
-        setProducts(response.data);
+      const [productsResponse, discountsResponse] = await Promise.all([
+        productService.getProducts(),
+        discountService.getActiveDiscounts(),
+      ]);
+
+      if (productsResponse.success && productsResponse.data) {
+        setProducts(productsResponse.data);
       } else {
-        setError(response.message);
+        setError(productsResponse.message);
+      }
+
+      if (discountsResponse.success && discountsResponse.data) {
+        console.log("Active discounts loaded:", discountsResponse.data);
+        setDiscounts(discountsResponse.data);
       }
     } catch (err) {
-      setError("Failed to fetch products");
+      setError("Failed to fetch data");
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchProducts = async () => {
+    await fetchData();
   };
 
   const handleCheckoutSuccess = () => {
@@ -39,6 +58,32 @@ const Dashboard: React.FC = () => {
 
   const handleAddToCart = (product: Product) => {
     updateCart(product);
+  };
+
+  const getProductDiscount = (product: Product) => {
+    // Check for product-specific discount first (higher priority)
+    const productDiscount = discounts.find(
+      (d) => d.productId && d.productId === product._id,
+    );
+    if (productDiscount) {
+      console.log(
+        `Product-specific discount found for ${product.name}:`,
+        productDiscount,
+      );
+      return productDiscount;
+    }
+
+    // Check for category-wide discount
+    const categoryDiscount = discounts.find(
+      (d) => d.category && d.category === product.category && !d.productId,
+    );
+    if (categoryDiscount) {
+      console.log(
+        `Category discount found for ${product.name}:`,
+        categoryDiscount,
+      );
+    }
+    return categoryDiscount;
   };
 
   if (loading) {
@@ -88,37 +133,48 @@ const Dashboard: React.FC = () => {
         <h1 className="mb-8 text-3xl font-bold">Welcome to DD Store</h1>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => (
-            <Card
-              key={product._id}
-              className="transition-shadow hover:shadow-lg"
-            >
-              <CardHeader>
-                <CardTitle className="text-xl">{product.name}</CardTitle>
-                <Badge variant="secondary">{product.category}</Badge>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-green-600">
-                      ${product.price}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      Stock: {product.stock}
-                    </span>
+          {products.map((product) => {
+            const discount = getProductDiscount(product);
+            return (
+              <Card
+                key={product._id}
+                className="relative transition-shadow hover:shadow-lg"
+              >
+                {discount && (
+                  <div className="absolute top-2 right-2 z-10">
+                    <Badge variant="destructive">
+                      <Tag className="mr-1 h-3 w-3" />
+                      {discount.ruleType}
+                    </Badge>
                   </div>
+                )}
+                <CardHeader>
+                  <CardTitle className="text-xl">{product.name}</CardTitle>
+                  <Badge variant="secondary">{product.category}</Badge>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-bold text-green-600">
+                        ${product.price}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        Stock: {product.stock}
+                      </span>
+                    </div>
 
-                  <Button
-                    onClick={() => handleAddToCart(product)}
-                    className="w-full"
-                    disabled={product.stock === 0}
-                  >
-                    {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                    <Button
+                      onClick={() => handleAddToCart(product)}
+                      className="w-full"
+                      disabled={product.stock === 0}
+                    >
+                      {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {products.length === 0 && (

@@ -6,7 +6,11 @@ import React, {
   type ReactNode,
 } from "react";
 import { type Product } from "../services/productService";
-import { cartService } from "../services/cartService";
+import {
+  cartService,
+  type CartSummary,
+  type DiscountedCartItem,
+} from "../services/cartService";
 import { checkoutService } from "../services/checkoutService";
 import { toast } from "sonner";
 
@@ -17,6 +21,8 @@ export interface CartItem {
 
 interface CartContextType {
   cartItems: CartItem[];
+  cartSummary: CartSummary | null;
+  discountedItems: DiscountedCartItem[];
   updateCart: (product: Product, quantityAction?: boolean) => void;
   removeFromCart: (productId: string) => void;
   removeItemCompletely: (productId: string) => void;
@@ -43,6 +49,10 @@ interface CartProviderProps {
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartSummary, setCartSummary] = useState<CartSummary | null>(null);
+  const [discountedItems, setDiscountedItems] = useState<DiscountedCartItem[]>(
+    [],
+  );
 
   // Sync cart from backend on app mount
   useEffect(() => {
@@ -73,6 +83,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         // If backend fails, revert local state
         await syncCartFromBackend();
         toast.error(response.message || "Failed to add item to cart");
+      } else {
+        // Sync cart to get updated discounts and prices
+        await syncCartFromBackend();
       }
       if (!quantityAction) {
         toast.success("Item added to cart successfully");
@@ -92,12 +105,22 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     try {
       const response = await cartService.getCart();
       if (response.success && response.data) {
-        // Populate cartItems with backend data
-        const backendItems: CartItem[] = response.data.map((item) => ({
-          product: item.productId as unknown as Product,
+        // Map discounted items to CartItem format
+        const backendItems: CartItem[] = response.data.items.map((item) => ({
+          product: {
+            _id: item.productId,
+            name: item.productName,
+            price: item.originalPrice,
+            createdAt: "",
+            updatedAt: "",
+            category: item.category,
+            stock: 0,
+          },
           quantity: item.quantity,
         }));
         setCartItems(backendItems);
+        setCartSummary(response.data.summary);
+        setDiscountedItems(response.data.items);
       }
     } catch (error) {
       console.error("Failed to sync cart from backend:", error);
@@ -133,6 +156,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         // If backend fails, revert local state
         await syncCartFromBackend();
         toast.error(response.message || "Failed to update cart");
+      } else {
+        // Sync cart to get updated discounts and prices
+        await syncCartFromBackend();
       }
     } catch (error: any) {
       console.error("Failed to remove from cart:", error);
@@ -158,6 +184,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         await syncCartFromBackend();
         toast.error(response.message || "Failed to remove item");
       } else {
+        // Sync cart to get updated discounts and prices
+        await syncCartFromBackend();
         toast.success("Item removed from cart");
       }
     } catch (error: any) {
@@ -174,6 +202,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     try {
       // Update local state immediately for better UX
       setCartItems([]);
+      setCartSummary(null);
+      setDiscountedItems([]);
 
       // Then sync with backend
       const response = await cartService.clearCart();
@@ -205,6 +235,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       if (response.success) {
         // Clear local cart state
         setCartItems([]);
+        setCartSummary(null);
+        setDiscountedItems([]);
 
         // Call the callback if provided
         if (onCheckoutSuccess) {
@@ -237,6 +269,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const value: CartContextType = {
     cartItems,
+    cartSummary,
+    discountedItems,
     updateCart,
     removeFromCart,
     removeItemCompletely,

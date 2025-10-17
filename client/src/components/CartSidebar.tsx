@@ -13,6 +13,8 @@ interface CartSidebarProps {
 const CartSidebar: React.FC<CartSidebarProps> = ({ onCheckoutSuccess }) => {
   const {
     cartItems,
+    cartSummary,
+    discountedItems,
     updateCart,
     removeFromCart,
     removeItemCompletely,
@@ -86,82 +88,138 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ onCheckoutSuccess }) => {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex-1 overflow-y-auto">
-        <div className="space-y-4">
-          {cartItems.map((item) => (
-            <Card key={item.product._id}>
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h4 className="text-sm font-medium">{item.product.name}</h4>
-                    <p className="text-xs text-gray-500">
-                      {item.product.category}
-                    </p>
-                    <p className="text-sm font-semibold text-green-600">
-                      ${item.product.price}
-                    </p>
-                  </div>
+      <div className="flex-1 overflow-y-auto pr-2">
+        <div className="space-y-4 pb-4">
+          {cartItems.map((item) => {
+            const discountInfo = discountedItems.find(
+              (d) => d.productId === item.product._id,
+            );
+            return (
+              <Card key={item.product._id}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-medium">
+                          {item.product.name}
+                        </h4>
+                        {discountInfo?.discountApplied && (
+                          <Badge
+                            variant="default"
+                            className="bg-green-600 text-xs"
+                          >
+                            {discountInfo.discountApplied}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        {item.product.category}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        {discountInfo?.discountAmount &&
+                        discountInfo.discountAmount > 0 ? (
+                          <>
+                            <p className="text-sm font-semibold text-gray-400 line-through">
+                              ${(item.product.price * item.quantity).toFixed(2)}
+                            </p>
+                            <p className="text-sm font-semibold text-green-600">
+                              ${discountInfo.finalPrice.toFixed(2)}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-sm font-semibold text-green-600">
+                            ${(item.product.price * item.quantity).toFixed(2)}
+                          </p>
+                        )}
+                      </div>
+                      {discountInfo?.discountAmount &&
+                      discountInfo.discountAmount > 0 ? (
+                        <p className="text-xs text-green-600">
+                          Saved: ${discountInfo.discountAmount.toFixed(2)}
+                        </p>
+                      ) : null}
+                    </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleRemoveItem(item.product._id)}
-                      disabled={buttonLoading[`remove-${item.product._id}`]}
-                    >
-                      {buttonLoading[`remove-${item.product._id}`] ? (
-                        <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-gray-900"></div>
-                      ) : (
-                        <Minus className="h-3 w-3" />
-                      )}
-                    </Button>
-                    <Badge
-                      variant="secondary"
-                      className="min-w-[2rem] text-center"
-                    >
-                      {item.quantity}
-                    </Badge>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleAddItem(item.product, true)}
-                      disabled={buttonLoading[`add-${item.product._id}`]}
-                    >
-                      {buttonLoading[`add-${item.product._id}`] ? (
-                        <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-gray-900"></div>
-                      ) : (
-                        <Plus className="h-3 w-3" />
-                      )}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() =>
-                        handleRemoveItemCompletely(item.product._id)
-                      }
-                      disabled={buttonLoading[`delete-${item.product._id}`]}
-                    >
-                      {buttonLoading[`delete-${item.product._id}`] ? (
-                        <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-gray-900"></div>
-                      ) : (
-                        <Trash2 className="h-3 w-3" />
-                      )}
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleRemoveItem(item.product._id)}
+                        disabled={buttonLoading[`remove-${item.product._id}`]}
+                      >
+                        {buttonLoading[`remove-${item.product._id}`] ? (
+                          <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-gray-900"></div>
+                        ) : (
+                          <Minus className="h-3 w-3" />
+                        )}
+                      </Button>
+                      <Badge
+                        variant="secondary"
+                        className="min-w-[2rem] text-center"
+                      >
+                        {item.quantity}
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleAddItem(item.product, true)}
+                        disabled={buttonLoading[`add-${item.product._id}`]}
+                      >
+                        {buttonLoading[`add-${item.product._id}`] ? (
+                          <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-gray-900"></div>
+                        ) : (
+                          <Plus className="h-3 w-3" />
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() =>
+                          handleRemoveItemCompletely(item.product._id)
+                        }
+                        disabled={buttonLoading[`delete-${item.product._id}`]}
+                      >
+                        {buttonLoading[`delete-${item.product._id}`] ? (
+                          <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-gray-900"></div>
+                        ) : (
+                          <Trash2 className="h-3 w-3" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
 
       {/* Cart Footer */}
-      <div className="mt-4 border-t pt-4">
-        <div className="mb-4 flex items-center justify-between">
-          <span className="text-lg font-bold">Total:</span>
-          <span className="text-lg font-bold text-green-600">
-            ${totalPrice.toFixed(2)}
-          </span>
+      <div className="flex-shrink-0 border-t bg-white pt-4">
+        <div className="mb-4 space-y-2">
+          <div className="flex items-center justify-between text-base">
+            <span>Subtotal:</span>
+            <span>
+              $
+              {cartSummary?.totalOriginalPrice.toFixed(2) ||
+                totalPrice.toFixed(2)}
+            </span>
+          </div>
+
+          {cartSummary && cartSummary.totalDiscount > 0 && (
+            <div className="flex items-center justify-between text-base font-semibold text-green-600">
+              <span>Discount:</span>
+              <span>-${cartSummary.totalDiscount.toFixed(2)}</span>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between border-t pt-2 text-lg font-bold">
+            <span>Total:</span>
+            <span className="text-green-600">
+              $
+              {cartSummary?.totalFinalPrice.toFixed(2) || totalPrice.toFixed(2)}
+            </span>
+          </div>
         </div>
 
         <div className="space-y-2">

@@ -1,6 +1,7 @@
 import CartItem, { ICartItem } from "../models/Cart";
 import Product from "../models/Product";
 import mongoose from "mongoose";
+import { applyDiscounts, DiscountedItem } from "./discountService";
 
 export interface UpdateCartData {
   productId: string;
@@ -109,18 +110,52 @@ export async function updateCart(
   }
 }
 
+export interface CartWithDiscounts {
+  items: DiscountedItem[];
+  summary: {
+    totalOriginalPrice: number;
+    totalDiscount: number;
+    totalFinalPrice: number;
+  };
+}
+
 export async function getCart(
   userId: string,
-): Promise<ServiceResponse<ICartItem[]>> {
+): Promise<ServiceResponse<CartWithDiscounts>> {
   try {
     const cartItems = await CartItem.find({
       userId: new mongoose.Types.ObjectId(userId),
     }).populate("productId");
 
+    if (cartItems.length === 0) {
+      return {
+        success: true,
+        message: "Cart is empty",
+        data: {
+          items: [],
+          summary: {
+            totalOriginalPrice: 0,
+            totalDiscount: 0,
+            totalFinalPrice: 0,
+          },
+        },
+      };
+    }
+
+    // Apply discounts
+    const discountResult = await applyDiscounts(cartItems);
+
     return {
       success: true,
       message: "Cart retrieved successfully",
-      data: cartItems,
+      data: {
+        items: discountResult.discountedItems,
+        summary: {
+          totalOriginalPrice: discountResult.totalOriginalPrice,
+          totalDiscount: discountResult.totalDiscount,
+          totalFinalPrice: discountResult.totalFinalPrice,
+        },
+      },
     };
   } catch (error) {
     console.error("Get cart error:", error);
