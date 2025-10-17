@@ -20,6 +20,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if (!loading && user && adminOnly && user.role !== "admin") {
       toast.error("Access denied. Admin privileges required");
     }
+    if (!loading && user && !adminOnly && user.role === "admin") {
+      toast.error(
+        "Admins cannot access the store. Redirecting to admin dashboard.",
+      );
+    }
   }, [loading, user, adminOnly]);
 
   if (loading) {
@@ -43,6 +48,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" replace />;
   }
 
+  // Redirect admins away from regular store
+  if (!adminOnly && user.role === "admin") {
+    return <Navigate to="/admin" replace />;
+  }
+
+  // Redirect regular users away from admin panel
   if (adminOnly && user.role !== "admin") {
     return <Navigate to="/" replace />;
   }

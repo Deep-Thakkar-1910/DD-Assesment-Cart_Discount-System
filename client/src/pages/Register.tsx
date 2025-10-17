@@ -47,9 +47,15 @@ const Register: React.FC = () => {
   const onSubmit = async (values: RegisterFormValues) => {
     try {
       const { name, email, password } = values;
-      await register(name, email, password, "user");
+      const userData = await register(name, email, password, "user");
       toast.success("Registration successful! Welcome to DD Store!");
-      navigate("/");
+
+      // Redirect based on user role (just in case)
+      if (userData?.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || "Registration failed. Please try again.";

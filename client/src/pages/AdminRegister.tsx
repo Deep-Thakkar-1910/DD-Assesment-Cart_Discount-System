@@ -58,7 +58,7 @@ const AdminRegister: React.FC = () => {
       toast.success(
         "Admin registration successful! Welcome to DD Store Admin Panel!",
       );
-      navigate("/");
+      navigate("/admin");
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message ||

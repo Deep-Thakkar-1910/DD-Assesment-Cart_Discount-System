@@ -43,9 +43,15 @@ const Login: React.FC = () => {
 
   const onSubmit = async (values: LoginFormValues) => {
     try {
-      await login(values.email, values.password);
+      const userData = await login(values.email, values.password);
       toast.success("Login successful!");
-      navigate("/");
+
+      // Redirect based on user role
+      if (userData?.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || "Login failed. Please try again.";

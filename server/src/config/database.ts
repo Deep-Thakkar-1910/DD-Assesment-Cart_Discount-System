@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
+import { config } from "./env";
 
 const connectDB = async (): Promise<void> => {
   try {
     const mongoURI =
-      process.env.MONGODB_URI || "mongodb://localhost:27017/dd-assessment-cart";
+      config.mongodbUri || "mongodb://localhost:27017/dd-assessment-cart";
 
     const conn = await mongoose.connect(mongoURI);
 

@@ -11,14 +11,14 @@ import { toast } from "sonner";
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User | null>;
   register: (
     name: string,
     email: string,
     password: string,
     role?: "user" | "admin",
     adminKey?: string,
-  ) => Promise<void>;
+  ) => Promise<User | null>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -50,10 +50,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(response.data.user);
         }
       } catch (error: any) {
-        // Handle session expiration
-        if (error.response?.status === 401) {
-          toast.error("Session expired. Please login again.");
-        }
         setUser(null);
       } finally {
         setLoading(false);
@@ -68,7 +64,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await authService.login({ email, password });
       if (response.success) {
         setUser(response.data.user);
+        return response.data.user;
       }
+      return null;
     } catch (error: any) {
       // Don't show toast here as it's handled in the Login component
       throw error;
@@ -92,7 +90,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       if (response.success) {
         setUser(response.data.user);
+        return response.data.user;
       }
+      return null;
     } catch (error) {
       throw error;
     }

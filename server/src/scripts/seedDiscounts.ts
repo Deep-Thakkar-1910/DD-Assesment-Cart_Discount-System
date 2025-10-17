@@ -14,7 +14,7 @@ async function seedDiscounts() {
 
     // Get products for specific discounts
     const tshirt = await Product.findOne({ name: "T-shirt" });
-    const shoes = await Product.findOne({ name: "Shoes" });
+    const sneakers = await Product.findOne({ name: "Sneakers" });
 
     const discounts = [
       {
@@ -27,8 +27,8 @@ async function seedDiscounts() {
       },
       {
         type: "BUY_X_FOR_Y",
-        ruleType: "Buy 2 for 1",
-        productId: shoes?._id,
+        ruleType: "Buy 2 Sneakers for 1",
+        productId: sneakers?._id,
         discountValue: 1,
         minQuantity: 2,
         payForQuantity: 1,
